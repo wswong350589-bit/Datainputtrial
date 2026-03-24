@@ -36,9 +36,9 @@
     <!-- 導覽列 -->
     <nav class="bg-white shadow-sm sticky top-0 z-50 border-bottom border-gray-100">
         <div class="max-w-4xl mx-auto flex justify-around">
-            <button onclick="switchTab('home')" id="tab-home" class="py-4 px-6 text-gray-500 tab-active transition-all" data-i18n="navHome">Home</button>
-            <button onclick="switchTab('input')" id="tab-input" class="py-4 px-6 text-gray-500 transition-all" data-i18n="navInput">Data Input</button>
-            <button onclick="switchTab('report')" id="tab-report" class="py-4 px-6 text-gray-500 transition-all" data-i18n="navReport">Report</button>
+            <button onclick="switchTab('home')" id="tab-home" class="py-4 px-6 text-gray-500 tab-active transition-all" data-i18n="navHome">主頁</button>
+            <button onclick="switchTab('input')" id="tab-input" class="py-4 px-6 text-gray-500 transition-all" data-i18n="navInput">輸入數據</button>
+            <button onclick="switchTab('report')" id="tab-report" class="py-4 px-6 text-gray-500 transition-all" data-i18n="navReport">報表</button>
         </div>
     </nav>
 
@@ -59,7 +59,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-50 border-b border-gray-100">
-                                <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-i18n="thTime">輸入時間</th>
+                                <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-i18n="thTime">時間</th>
                                 <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-i18n="thD1">資料 1</th>
                                 <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-i18n="thD2">資料 2</th>
                                 <th class="p-4 text-xs font-semibold text-gray-500 uppercase tracking-wider" data-i18n="thD3">資料 3</th>
@@ -102,7 +102,7 @@
                         <div id="reader" class="mt-4 rounded-xl overflow-hidden border-2 border-dashed border-gray-200 hidden"></div>
                     </div>
 
-                    <button onclick="submitData()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95" data-i18n="submitBtn">提交資料至 Home</button>
+                    <button onclick="submitData()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition-transform active:scale-95" data-i18n="submitBtn">提交並儲存</button>
                     <button onclick="resetForm()" class="w-full text-gray-400 text-sm hover:text-gray-600 transition-colors" data-i18n="resetBtn">清空當前內容</button>
                 </div>
             </div>
@@ -138,16 +138,16 @@
                 labelD1: "資料 1 (自由輸入)", labelD2: "資料 2 (自動鎖定)", labelD3: "資料 3 (自動鎖定)",
                 phLocked: "輸入內容後即鎖定", submitBtn: "提交並儲存", resetBtn: "重置表單",
                 reportPlaceholder: "報表模組正在對接中...", noRecords: "查無此日期的紀錄", emptyTable: "目前沒有任何數據紀錄",
-                exportBtn: "Export", loading: "導出中...", errorTemplate: "找不到模板檔案，請確認 GitHub 已上傳 Report_Template.xlsx"
+                exportBtn: "Export", loading: "導出中...", errorTemplate: "找不到模板檔案"
             },
             en: {
                 navHome: "Home", navInput: "Input", navReport: "Report",
                 homeTitle: "Data Center (Home)", searchBtn: "Search",
                 thTime: "Time", thD1: "Data 1", thD2: "Data 2", thD3: "Data 3", thAction: "Action",
-                labelD1: "Field 1 (Free Text)", labelD2: "Field 2 (Auto-Lock)", labelD3: "Field 3 (Auto-Lock)",
+                labelD1: "Field 1", labelD2: "Field 2", labelD3: "Field 3",
                 phLocked: "Locked after input", submitBtn: "Submit Record", resetBtn: "Reset Form",
                 reportPlaceholder: "Report module coming soon...", noRecords: "No records found", emptyTable: "No data records yet",
-                exportBtn: "Export", loading: "Exporting...", errorTemplate: "Template not found. Check GitHub repo."
+                exportBtn: "Export", loading: "Exporting...", errorTemplate: "Template not found"
             }
         };
 
@@ -189,13 +189,11 @@
             lastDisplayedData = displayData;
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
-
             if (displayData.length === 0) {
                 const msg = localData.length === 0 ? i18n[currentLang].emptyTable : i18n[currentLang].noRecords;
                 tbody.innerHTML = `<tr><td colspan="5" class="p-10 text-center text-gray-400 italic">${msg}</td></tr>`;
                 return;
             }
-
             displayData.forEach(item => {
                 const row = document.createElement('tr');
                 row.className = "border-b border-gray-50 hover:bg-gray-50/50 transition-colors";
@@ -205,7 +203,7 @@
                     <td class="p-4 text-sm text-gray-600">${item.d2}</td>
                     <td class="p-4 text-sm text-gray-600">${item.d3}</td>
                     <td class="p-4 text-center">
-                        <button id="btn-${item.id}" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded border border-blue-100 text-xs font-semibold transition-all" onclick="exportWithRemoteTemplate(${item.id})">
+                        <button id="btn-${item.id}" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded border border-blue-100 text-xs font-semibold" onclick="exportWithRemoteTemplate(${item.id})">
                             ${i18n[currentLang].exportBtn}
                         </button>
                     </td>
@@ -214,52 +212,40 @@
             });
         }
 
-        // 核心功能：讀取 GitHub 上的模板並填值 (已優化以保留格式)
+        // 修改後的導出函數：使用較安全的寫入方式
         window.exportWithRemoteTemplate = async function(recordId) {
             const btn = document.getElementById(`btn-${recordId}`);
             const originalText = btn.innerText;
-            
             try {
                 btn.innerText = i18n[currentLang].loading;
                 btn.disabled = true;
 
                 const record = localData.find(r => r.id === recordId);
-                const templateName = 'Report_Template.xlsx';
-
-                // 1. Fetch 模板檔案
-                const response = await fetch(templateName);
+                const response = await fetch('Report_Template.xlsx');
                 if (!response.ok) throw new Error(i18n[currentLang].errorTemplate);
                 
                 const arrayBuffer = await response.arrayBuffer();
-                
-                // 讀取時保留原有的 cellStyles (雖然開源版 SheetJS 對樣式支持有限，但基本結構會保留)
-                const workbook = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true });
+                // 核心改動：增加 bookVBA: true 和 cellStyles: true 來盡量保持原樣
+                const workbook = XLSX.read(arrayBuffer, { type: 'array', cellStyles: true, bookVBA: true });
 
-                // 2. 寫入 Data 分頁 (採用 sheet_add_aoa 以保留原表結構)
+                // 寫入 RP 分頁
+                const wsRP = workbook.Sheets["RP"];
+                if (wsRP) {
+                    // 使用 sheet_add_aoa 而不是手動修改 cell 對象，這對 Excel 來說比較「安全」
+                    // origin 代表起始儲存格
+                    XLSX.utils.sheet_add_aoa(wsRP, [[record.d1]], { origin: "B3" });
+                    XLSX.utils.sheet_add_aoa(wsRP, [[record.d2]], { origin: "B4" });
+                    XLSX.utils.sheet_add_aoa(wsRP, [[record.d3]], { origin: "B5" });
+                    XLSX.utils.sheet_add_aoa(wsRP, [[record.dateOnly]], { origin: "B7" });
+                }
+
+                // 寫入 Data 分頁
                 const wsData = workbook.Sheets["Data"];
                 if (wsData) {
                     XLSX.utils.sheet_add_aoa(wsData, [[record.dateOnly, record.d1, record.d2, record.d3]], { origin: "A2" });
                 }
 
-                // 3. 寫入 RP 分頁 (精確格位填值)
-                const wsRP = workbook.Sheets["RP"];
-                if (wsRP) {
-                    // 自定義更新函數：只修改值，不破壞單元格原有的對象屬性
-                    const setCellValue = (addr, val) => {
-                        if (!wsRP[addr]) wsRP[addr] = { t: 's' };
-                        wsRP[addr].v = val;
-                        // 如果原單元格有格式 (s 屬性)，SheetJS 會盡力保留在 workbook 對象中
-                    };
-
-                    setCellValue('B3', record.d1);
-                    setCellValue('B4', record.d2);
-                    setCellValue('B5', record.d3);
-                    setCellValue('B7', record.dateOnly);
-                }
-
-                // 4. 下載 (writeFile 會封裝整個 workbook 對象，保留列寬 !cols)
-                XLSX.writeFile(workbook, `Report_${record.dateOnly}_${recordId}.xlsx`);
-
+                XLSX.writeFile(workbook, `Report_${record.dateOnly}.xlsx`);
             } catch (err) {
                 alert(err.message);
                 console.error(err);
